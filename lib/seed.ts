@@ -10,7 +10,7 @@ export function sampleMeetings(now = Date.now()): Meeting[] {
     return {
       id: `sample-${i + 1}`,
       title: s.title,
-      createdAt: now - (i + 1) * 26 * 3600 * 1000,
+      createdAt: now - (2 + i * 14) * 3600 * 1000,
       durationSec: estimateDuration(segments),
       source: 'sample',
       segments,

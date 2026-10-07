@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, AudioLines, CalendarClock, ClipboardPaste, Clock3, FileUp, Mic, Search, Trash2 } from 'lucide-react';
+import { ArrowRight, AudioLines, CalendarClock, CircleCheckBig, ClipboardPaste, Clock3, FileUp, Gavel, ListTodo, Mic, Search, Trash2 } from 'lucide-react';
 import { deleteMeeting, getMeetings, saveMeetings, useMeetings } from '@/lib/store';
 import { sampleMeetings } from '@/lib/seed';
 import { searchMeetings } from '@/lib/search';
@@ -88,14 +88,18 @@ export default function Dashboard() {
       <div className="mb-10 grid gap-4 lg:grid-cols-[1fr_380px]">
         <div className="panel grid grid-cols-2 divide-ink-200 sm:grid-cols-4 sm:divide-x">
           {[
-            { label: 'Meetings', value: meetings.length },
-            { label: 'Open tasks', value: openTasks.length },
-            { label: 'Decisions', value: decisions },
-            { label: 'Minutes captured', value: minutes },
-          ].map(({ label, value }) => (
-            <div key={label} className="p-5">
-              <div className="text-[30px] font-extrabold leading-none tracking-tight tabular-nums">{value}</div>
-              <div className="mt-2 text-[12.5px] font-semibold text-ink-500">{label}</div>
+            { label: 'Meetings', value: meetings.length, hint: 'stored in this browser', icon: AudioLines },
+            { label: 'Open tasks', value: openTasks.length, hint: `${openTasks.filter((t) => t.item.owner).length} with an owner`, icon: ListTodo },
+            { label: 'Decisions', value: decisions, hint: 'recorded in recaps', icon: Gavel },
+            { label: 'Minutes captured', value: minutes, hint: 'of conversation', icon: Clock3 },
+          ].map(({ label, value, hint, icon: Icon }) => (
+            <div key={label} className="flex flex-col justify-between gap-6 p-5">
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-ink-100 text-ink-700"><Icon className="h-[18px] w-[18px]" /></span>
+              <div>
+                <div className="text-[34px] font-extrabold leading-none tracking-tight tabular-nums">{value}</div>
+                <div className="mt-2 text-[13px] font-bold">{label}</div>
+                <div className="text-[12px] text-ink-500">{hint}</div>
+              </div>
             </div>
           ))}
         </div>
