@@ -4,17 +4,17 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/25 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
+  'inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-xl text-[13px] font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 disabled:pointer-events-none disabled:opacity-45 active:scale-[0.98] [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        default: 'bg-brand-500 text-white shadow-[0_8px_24px_-8px_rgba(124,77,255,.8)] hover:bg-brand-600',
-        dark: 'bg-ink-900 text-white hover:bg-ink-800',
-        outline: 'border border-ink-300/60 bg-white text-ink-900 hover:border-brand-400 hover:text-brand-700',
-        ghost: 'text-ink-500 hover:bg-brand-50 hover:text-brand-700',
-        danger: 'text-rose-600 hover:bg-rose-50',
+        default: 'bg-brand-gradient text-white shadow-glow hover:brightness-[1.06]',
+        dark: 'bg-ink-950 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.12)] hover:bg-ink-800',
+        outline: 'border border-ink-200 bg-white text-ink-900 hover:border-ink-300 hover:bg-ink-50',
+        ghost: 'text-ink-600 hover:bg-ink-100 hover:text-ink-950',
+        danger: 'text-ink-500 hover:bg-brand-50 hover:text-brand-700',
       },
-      size: { default: 'h-10 px-4', sm: 'h-8 rounded-lg px-3 text-xs', lg: 'h-12 px-6 text-base', icon: 'h-9 w-9' },
+      size: { default: 'h-10 px-4', sm: 'h-8 rounded-lg px-3 text-xs', lg: 'h-12 px-6 text-sm', icon: 'h-9 w-9' },
     },
     defaultVariants: { variant: 'default', size: 'default' },
   },
