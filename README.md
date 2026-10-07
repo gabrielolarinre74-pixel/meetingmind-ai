@@ -118,3 +118,7 @@ npm test             # Vitest
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+---
+
+Designed and built by **Gabriel Zion · Gabriel.ATH**. I build websites, apps and AI automation that help businesses grow. [Portfolio](https://gabrielzion-portfolio.vercel.app)
