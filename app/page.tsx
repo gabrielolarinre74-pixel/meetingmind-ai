@@ -8,7 +8,7 @@ import { sampleMeetings } from '@/lib/seed';
 import { searchMeetings } from '@/lib/search';
 import { bucketOf, formatDueDate, resolveDue } from '@/lib/dates';
 import { meetingHealth } from '@/lib/health';
-import { cn, formatDuration, formatTimestamp } from '@/lib/utils';
+import { cn, formatDuration } from '@/lib/utils';
 import type { Meeting } from '@/lib/types';
 
 const SOURCE: Record<Meeting['source'], string> = { live: 'Recorded', audio: 'Audio', upload: 'File', paste: 'Pasted', sample: 'Sample' };
@@ -163,7 +163,7 @@ export default function Dashboard() {
                   <span>{health && <span className={cn('chip', health.grade === 'Great' ? 'bg-emerald-50 text-emerald-700' : health.grade === 'Good' ? 'bg-amber-50 text-amber-800' : 'bg-brand-50 text-brand-700')}>{health.score} · {health.grade}</span>}</span>
                   <span className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ink-600">{m.durationSec ? <><Clock3 className="h-3.5 w-3.5 text-ink-400" />{formatDuration(m.durationSec)}</> : '—'}</span>
                   <Progress done={items.filter((i) => i.done).length} total={items.length} />
-                  <span className="flex items-center gap-1.5 text-[12.5px] text-ink-500"><CalendarClock className="h-3.5 w-3.5 text-ink-400" />{formatTimestamp(m.createdAt)}</span>
+                  <span className="flex items-center gap-1.5 text-[12.5px] text-ink-500"><CalendarClock className="h-3.5 w-3.5 text-ink-400" />{new Date(m.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   <button
                     className="relative z-10 grid h-8 w-8 place-items-center rounded-lg text-ink-400 opacity-0 transition hover:bg-brand-50 hover:text-brand-700 focus:opacity-100 group-hover:opacity-100"
                     onClick={() => confirm(`Delete "${m.title}"?`) && deleteMeeting(m.id)}
