@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Lexend';
+  src: url('../styles/fonts/Lexend-VariableFont_wght.ttf') format('truetype');
+  font-display: swap;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-[#f7f5fc] text-ink-900 antialiased;
+  background-image: radial-gradient(50rem 25rem at 90% -5%, rgba(124, 77, 255, 0.12), transparent),
+    radial-gradient(40rem 20rem at -10% 0%, rgba(56, 189, 248, 0.08), transparent);
+  background-attachment: fixed;
+}
+
+@layer components {
+  .max-width { @apply mx-auto w-full max-w-6xl px-5 md:px-8; }
+  .card { @apply rounded-2xl border border-ink-300/30 bg-white/90 shadow-soft backdrop-blur; }
+  .field { @apply w-full rounded-xl border border-ink-300/50 bg-white px-3.5 py-2.5 text-sm outline-none transition placeholder:text-ink-300 focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15; }
+  .label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-500; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium; }
+  .section-title { @apply mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-ink-500; }
+}
+
+/* Recording orb (inspired by the original voice-note UI) */
+.recording-box {
+  background: linear-gradient(143deg, #e648f4 8.37%, rgba(73, 80, 240, 0.62) 71.62%);
+  filter: blur(13px);
+}
+.record-animation { animation: pulse-orb 1.6s ease-in-out infinite; }
+@keyframes pulse-orb {
+  0%, 100% { transform: scale(0.95); opacity: 0.85; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
