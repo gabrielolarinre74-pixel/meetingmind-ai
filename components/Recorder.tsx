@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Loader2, Mic, Plus, Square, UserRound } from 'lucide-react';
+import { Loader2, Mic, Plus, Square, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { createMeeting } from '@/lib/process';
@@ -44,6 +44,7 @@ export default function Recorder({ onDone }: { onDone: (m: Meeting) => void }) {
   const [newSpeaker, setNewSpeaker] = useState('');
   const [title, setTitle] = useState('');
   const [hasSR, setHasSR] = useState(true);
+  const [levels, setLevels] = useState<number[]>(() => Array(36).fill(0));
 
   const recRef = useRef<SpeechRec | null>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
@@ -52,6 +53,8 @@ export default function Recorder({ onDone }: { onDone: (m: Meeting) => void }) {
   const startRef = useRef(0);
   const speakerRef = useRef(current);
   const activeRef = useRef(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const rafRef = useRef(0);
   speakerRef.current = current;
 
   useEffect(() => setHasSR(!!getSpeechRecognition()), []);
@@ -67,6 +70,10 @@ export default function Recorder({ onDone }: { onDone: (m: Meeting) => void }) {
 
   function stopEverything() {
     activeRef.current = false;
+    cancelAnimationFrame(rafRef.current);
+    audioCtxRef.current?.close().catch(() => {});
+    audioCtxRef.current = null;
+    setLevels(Array(36).fill(0));
     recRef.current?.stop();
     if (mediaRef.current?.state === 'recording') mediaRef.current.stop();
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -83,6 +90,7 @@ export default function Recorder({ onDone }: { onDone: (m: Meeting) => void }) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
+      startMeter(stream);
       if (canWhisper) {
         const mimeType = pickMimeType();
         const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
@@ -133,6 +141,31 @@ export default function Recorder({ onDone }: { onDone: (m: Meeting) => void }) {
     setStatus('recording');
   }
 
+  // Live input level so people can see the microphone is actually picking them up
+  function startMeter(stream: MediaStream) {
+    try {
+      const ctx = new AudioContext();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      ctx.createMediaStreamSource(stream).connect(analyser);
+      audioCtxRef.current = ctx;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      let last = 0;
+      const tick = (t: number) => {
+        rafRef.current = requestAnimationFrame(tick);
+        if (t - last < 70) return;
+        last = t;
+        analyser.getByteTimeDomainData(data);
+        let peak = 0;
+        for (const v of data) peak = Math.max(peak, Math.abs(v - 128) / 128);
+        setLevels((prev) => [...prev.slice(1), Math.min(1, peak * 2.2)]);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    } catch {
+      /* metering is optional */
+    }
+  }
+
   async function stop() {
     const duration = Math.floor((Date.now() - startRef.current) / 1000);
     setStatus('processing');
@@ -179,58 +212,75 @@ export default function Recorder({ onDone }: { onDone: (m: Meeting) => void }) {
     setNewSpeaker('');
   };
 
+  const label = status === 'recording' ? 'Recording' : status === 'processing' ? 'Writing your notes' : 'Ready when you are';
+
   return (
-    <div className="grid gap-5 lg:grid-cols-[340px_1fr]">
-      <div className="card flex flex-col items-center p-6">
-        <input className="field mb-6 text-center" placeholder="Meeting title (optional)" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} disabled={status !== 'idle'} />
-        <div className="relative mx-auto flex h-56 w-56 items-center justify-center">
-          <div className={cn('recording-box absolute h-full w-full rounded-full p-[12%] pt-[17%]', status === 'recording' && 'record-animation')}>
-            <div className="h-full w-full rounded-full" style={{ background: 'linear-gradient(#E31C1CD6, #003EB6CC)' }} />
+    <div className="grid gap-5 lg:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="relative overflow-hidden rounded-3xl bg-ink-950 p-6 text-white">
+        <div className={cn('pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-brand-gradient blur-3xl transition-opacity duration-700', status === 'recording' ? 'opacity-70' : 'opacity-30')} />
+        <div className="relative">
+          <input
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white outline-none placeholder:text-white/40 focus:border-white/30"
+            placeholder="Meeting title (optional)"
+            maxLength={120}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            disabled={status !== 'idle'}
+          />
+          <div className="mt-10 text-center">
+            <div className="flex items-center justify-center gap-2 text-[12px] font-bold uppercase tracking-[0.12em] text-white/60">
+              {status === 'recording' && <span className="h-2 w-2 animate-pulse rounded-full bg-brand-500" />}
+              {label}
+            </div>
+            <div className="mt-2 font-mono text-[56px] font-medium tabular-nums tracking-tight">{formatTime(seconds)}</div>
           </div>
-          <div className="z-10 text-center text-white">
-            <div className="text-5xl font-light tabular-nums tracking-tight">{formatTime(seconds)}</div>
-            <div className="mt-1 text-xs uppercase tracking-widest opacity-80">{status === 'recording' ? 'Recording' : status === 'processing' ? 'Processing' : 'Ready'}</div>
+          <div className="mt-6 flex h-20 items-center justify-center gap-[3px]" aria-hidden>
+            {levels.map((l, i) => (
+              <span
+                key={i}
+                className={cn('w-[5px] rounded-full transition-[height] duration-75', status === 'recording' ? 'bg-gradient-to-t from-brand-600 to-brand-300' : 'bg-white/15')}
+                style={{ height: `${status === 'recording' ? Math.max(6, l * 80) : 6 + ((i * 7) % 5) * 2}px` }}
+              />
+            ))}
           </div>
+          <div className="mt-8 flex justify-center">
+            {status === 'idle' && <Button size="lg" className="w-full rounded-2xl" onClick={start}><Mic /> Start recording</Button>}
+            {status === 'recording' && <Button size="lg" className="w-full rounded-2xl bg-white text-ink-950 shadow-none hover:bg-white/90 hover:brightness-100" onClick={stop}><Square className="fill-current" /> Stop and write notes</Button>}
+            {status === 'processing' && <Button size="lg" disabled className="w-full rounded-2xl"><Loader2 className="animate-spin" /> Working…</Button>}
+          </div>
+          <p className="mt-4 text-center text-[12px] leading-relaxed text-white/45">
+            {hasSR ? 'Live captions use your browser’s speech recognition. Audio is never uploaded unless you turn on the AI engine.' : 'Live captions need Chrome or Edge. With an API key, audio is transcribed by Whisper instead.'}
+          </p>
         </div>
-        <div className="mt-8">
-          {status === 'idle' && (
-            <Button size="lg" className="rounded-full px-8" onClick={start}><Mic className="h-5 w-5" /> Start recording</Button>
-          )}
-          {status === 'recording' && (
-            <Button size="lg" variant="dark" className="rounded-full px-8" onClick={stop}><Square className="h-4 w-4 fill-current" /> Stop & analyse</Button>
-          )}
-          {status === 'processing' && (
-            <Button size="lg" disabled className="rounded-full px-8"><Loader2 className="h-5 w-5 animate-spin" /> Working…</Button>
-          )}
-        </div>
-        {!hasSR && <p className="mt-4 text-center text-xs text-amber-700">Live captions need Chrome or Edge. With an API key, audio is transcribed by Whisper instead.</p>}
       </div>
 
-      <div className="card flex min-h-[420px] flex-col p-5">
-        <div className="mb-3">
-          <div className="section-title"><UserRound className="h-4 w-4" />Who is speaking?</div>
+      <div className="panel flex min-h-[460px] flex-col p-6">
+        <div className="mb-4">
+          <div className="mb-2.5 flex items-center gap-2 text-[14px] font-extrabold"><Users className="h-4 w-4 text-brand-600" />Who is speaking?</div>
           <div className="flex flex-wrap items-center gap-2">
             {speakers.map((s) => (
-              <button key={s} onClick={() => setCurrent(s)} className={cn('rounded-full border px-3 py-1 text-sm transition', current === s ? 'border-brand-500 bg-brand-500 text-white' : 'border-ink-300/50 hover:border-brand-400')}>
+              <button key={s} onClick={() => setCurrent(s)} className={cn('h-8 rounded-lg px-3 text-[13px] font-bold transition', current === s ? 'bg-ink-950 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200')}>
                 {s}
               </button>
             ))}
-            <div className="flex items-center">
-              <input className="field h-8 w-32 rounded-r-none py-1" placeholder="Add person" value={newSpeaker} onChange={(e) => setNewSpeaker(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSpeaker()} />
-              <button className="flex h-8 items-center rounded-r-xl bg-brand-500 px-2 text-white" onClick={addSpeaker} aria-label="Add speaker"><Plus className="h-4 w-4" /></button>
+            <div className="flex items-center overflow-hidden rounded-lg border border-ink-200 focus-within:border-brand-400">
+              <input className="h-8 w-32 bg-transparent px-2.5 text-[13px] outline-none placeholder:text-ink-400" placeholder="Add person" value={newSpeaker} maxLength={30} onChange={(e) => setNewSpeaker(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSpeaker()} />
+              <button className="grid h-8 w-8 place-items-center border-l border-ink-200 text-ink-600 hover:bg-ink-50" onClick={addSpeaker} aria-label="Add speaker"><Plus className="h-4 w-4" /></button>
             </div>
           </div>
-          <p className="mt-2 text-xs text-ink-500">Tap a name when someone starts talking. Their words are labelled in the transcript so action items get the right owner.</p>
+          <p className="mt-2 text-[12.5px] text-ink-500">Tap a name when someone starts talking. Lines are labelled so each action item gets the right owner.</p>
         </div>
-        <div className="flex-1 space-y-3 overflow-y-auto rounded-xl bg-ink-300/10 p-4 text-sm leading-relaxed">
-          {segments.length === 0 && !interim && <p className="text-ink-500">The live transcript will appear here…</p>}
+        <div className="dot-grid flex-1 space-y-3 overflow-y-auto rounded-xl border border-ink-100 p-4 text-[14px] leading-relaxed">
+          {segments.length === 0 && !interim && (
+            <div className="grid h-full place-items-center text-center text-[13px] text-ink-400">The live transcript will appear here as people speak.</div>
+          )}
           {segments.map((s, i) => (
-            <p key={i}>
-              <span className="mr-2 font-mono text-xs text-ink-300">{formatTime(s.time)}</span>
-              <b className="text-brand-700">{s.speaker}:</b> {s.text}
+            <p key={i} className="animate-rise rounded-lg bg-white/90 px-3 py-2 shadow-card">
+              <span className="mr-2 font-mono text-[11px] text-ink-400">{formatTime(s.time)}</span>
+              <b className="font-extrabold">{s.speaker}</b> <span className="text-ink-700">{s.text}</span>
             </p>
           ))}
-          {interim && <p className="italic text-ink-500">{interim}</p>}
+          {interim && <p className="px-3 italic text-ink-500">{interim}</p>}
         </div>
       </div>
     </div>
