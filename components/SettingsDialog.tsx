@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Eye, EyeOff, FlaskConical, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,8 @@ export default function SettingsDialog({ open, onClose }: { open: boolean; onClo
     onClose();
   };
 
-  return (
+  // Portal to <body>: the sticky header uses backdrop-filter, which would otherwise trap a fixed overlay inside it
+  return createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
       <div className="absolute inset-0 bg-ink-950/50 backdrop-blur-sm" onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label="Settings" className="relative w-full max-w-[520px] animate-rise overflow-hidden rounded-3xl bg-white shadow-lift">
@@ -111,6 +113,7 @@ export default function SettingsDialog({ open, onClose }: { open: boolean; onClo
           <Button variant="dark" onClick={save}>Save settings</Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
