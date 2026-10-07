@@ -1,12 +1,16 @@
 import type { Metadata } from 'next';
-import './globals.css';
+import { JetBrains_Mono, Manrope } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import './globals.css';
 
-const title = 'MeetingMind · AI meeting notes, action items & follow-ups';
+const sans = Manrope({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' });
+
+const title = 'MeetingMind · Meeting notes that turn into next steps';
 const description =
-  'Record or upload a meeting and get a summary, decisions, action items with owners and due dates, and a ready-to-send follow-up email. Runs in your browser.';
+  'Record, upload or paste a meeting and get a summary, decisions, owned action items with real dates, a follow-up email and a calendar file. Runs in your browser.';
 
 export const metadata: Metadata = {
   title,
@@ -17,12 +21,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="flex min-h-screen flex-col">
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+      <body className="flex min-h-screen flex-col font-sans">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
-        <Toaster position="bottom-right" toastOptions={{ style: { borderRadius: 12, fontSize: 14 } }} />
+        <Toaster
+          position="bottom-center"
+          toastOptions={{ style: { borderRadius: 12, fontSize: 13, fontWeight: 600, background: '#0a0a0a', color: '#fff' } }}
+        />
       </body>
     </html>
   );
