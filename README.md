@@ -6,7 +6,7 @@
 
 **Turn any meeting, call or voice note into a summary, decisions, action items with owners and due dates, and a ready-to-send follow-up email.**
 
-[**Live demo**](https://gabrielolarinre74-pixel.github.io/meetingmind-ai/) · works in the browser with sample meetings, no account and no API key
+**Runs entirely in your browser** · built-in demo mode with sample meetings, no account and no API key · [Run it locally](#run-it-locally)
 
 ![Meeting notes](docs/screenshots/meeting.png)
 
@@ -66,7 +66,7 @@ MeetingMind does that part for you:
 - **Tailwind CSS** + `class-variance-authority` components · `lucide-react` icons · `react-hot-toast`
 - **Zod** for validating AI responses
 - **Vitest** unit tests for the transcript parsers, the analysis engine, due-date detection and the AI helpers
-- **GitHub Actions**: test, build and deploy to GitHub Pages on every push
+- **GitHub Actions** CI: tests and a production build on every push and pull request
 
 ## Screenshots
 
@@ -80,6 +80,8 @@ MeetingMind does that part for you:
 
 ## Run it locally
 
+You need **Node.js 20.9+** and npm.
+
 ```bash
 git clone https://github.com/gabrielolarinre74-pixel/meetingmind-ai.git
 cd meetingmind-ai
@@ -87,7 +89,14 @@ npm install
 npm run dev      # http://localhost:3000
 npm test         # unit tests
 npm run build    # static site in ./out
+npx serve out    # optional: serve the production build locally
 ```
+
+Then open http://localhost:3000 in your browser.
+
+### Demo mode (no API key)
+
+The app opens in **demo mode** by default. Three fictional sample meetings are loaded on first visit, and pasted or recorded transcripts are analysed by the built-in offline engine (summary, decisions, action items with owners and due dates, follow-up email). Live captions use your browser's speech recognition (Chrome or Edge recommended). Nothing is sent anywhere, so you can try every feature straight away. Switch to a real model at any time in **Settings**.
 
 To use an AI model, click the **gear icon → AI model**, paste an API key and choose a model (default `gpt-4o-mini`, with `whisper-1` for transcription). Any OpenAI-compatible endpoint works.
 

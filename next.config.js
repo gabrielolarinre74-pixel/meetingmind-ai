@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-// Fully static export: MeetingMind runs in the browser, so it can be hosted on GitHub Pages.
+// Fully static export: MeetingMind runs in the browser, so ./out can be served by any static host.
 // BASE_PATH is set by the deploy workflow (e.g. "/meetingmind-ai").
 const basePath = process.env.BASE_PATH || '';
 
