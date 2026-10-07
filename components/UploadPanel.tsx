@@ -46,28 +46,40 @@ export default function UploadPanel({ onDone }: { onDone: (m: Meeting) => void }
   };
 
   return (
-    <label
-      onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
-      onDragLeave={() => setDrag(false)}
-      onDrop={(e) => { e.preventDefault(); setDrag(false); handle(e.dataTransfer.files[0]); }}
-      className={cn('card flex cursor-pointer flex-col items-center justify-center border-2 border-dashed p-14 text-center transition', drag ? 'border-brand-500 bg-brand-50' : 'border-ink-300/50 hover:border-brand-400')}
-    >
-      <input type="file" className="hidden" accept=".txt,.vtt,.srt,.md,audio/*" onChange={(e) => handle(e.target.files?.[0])} disabled={!!busy} />
-      {busy ? (
-        <>
-          <Loader2 className="mb-3 h-10 w-10 animate-spin text-brand-500" />
-          <div className="font-semibold">{busy}</div>
-        </>
-      ) : (
-        <>
-          <UploadCloud className="mb-3 h-10 w-10 text-brand-500" />
-          <div className="text-lg font-semibold">Drop a file or click to browse</div>
-          <div className="mt-4 grid gap-3 text-left text-sm text-ink-500 sm:grid-cols-2">
-            <div className="flex gap-2 rounded-xl bg-ink-300/10 p-3"><FileText className="h-5 w-5 shrink-0 text-brand-500" /><span><b className="text-ink-900">Transcripts</b><br />Zoom, Meet & Teams .vtt / .srt, or .txt / .md notes. Works offline.</span></div>
-            <div className="flex gap-2 rounded-xl bg-ink-300/10 p-3"><FileAudio className="h-5 w-5 shrink-0 text-brand-500" /><span><b className="text-ink-900">Audio</b><br />mp3, m4a, wav, webm up to 25 MB. Transcribed with Whisper (AI engine).</span></div>
-          </div>
-        </>
-      )}
-    </label>
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <label
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => { e.preventDefault(); setDrag(false); handle(e.dataTransfer.files[0]); }}
+        className={cn(
+          'dot-grid flex min-h-[380px] cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed bg-white p-10 text-center transition',
+          drag ? 'border-brand-500 bg-brand-50 ring-8 ring-brand-500/10' : 'border-ink-200 hover:border-brand-300',
+        )}
+      >
+        <input type="file" className="hidden" accept=".txt,.vtt,.srt,.md,audio/*" onChange={(e) => handle(e.target.files?.[0])} disabled={!!busy} />
+        {busy ? (
+          <>
+            <Loader2 className="mb-4 h-10 w-10 animate-spin text-brand-600" />
+            <div className="text-[16px] font-extrabold">{busy}</div>
+          </>
+        ) : (
+          <>
+            <span className="mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-brand-gradient text-white shadow-glow"><UploadCloud className="h-7 w-7" /></span>
+            <div className="text-[20px] font-extrabold tracking-tight">Drop a file here</div>
+            <div className="mt-1 text-[14px] text-ink-500">or <span className="font-bold text-brand-700 underline underline-offset-4">browse your computer</span></div>
+          </>
+        )}
+      </label>
+      <div className="space-y-3">
+        <div className="panel p-5">
+          <div className="mb-2 flex items-center gap-2 text-[14px] font-extrabold"><FileText className="h-4 w-4 text-brand-600" />Transcripts</div>
+          <p className="text-[13px] leading-relaxed text-ink-500">Zoom, Google Meet and Teams exports (.vtt, .srt) or plain .txt and .md notes, up to 2 MB. Works offline in demo mode.</p>
+        </div>
+        <div className="panel p-5">
+          <div className="mb-2 flex items-center gap-2 text-[14px] font-extrabold"><FileAudio className="h-4 w-4 text-brand-600" />Audio</div>
+          <p className="text-[13px] leading-relaxed text-ink-500">mp3, m4a, wav or webm up to 25 MB, transcribed with Whisper. Needs the AI engine and your own API key.</p>
+        </div>
+      </div>
+    </div>
   );
 }
